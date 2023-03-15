@@ -1,0 +1,69 @@
+---
+title: "Netcdf Data Processing"
+output: html_notebook
+---
+
+This notebook process raw Netcdf codes from Randall Martin's surface PM2.5 exposure dataset(https://sites.wustl.edu/acag/datasets/surface-pm2-5/)
+
+```{r}
+library(ncdf4)
+library(raster)
+library(tidyverse)
+library(geometry)
+library(data.table)
+library(maps)
+library(magrittr)
+library(ggplot2)
+library(sf)
+library(reshape2) # For reshaping data
+library(mapdata)  # For map data
+library(ggmap)
+
+```
+
+
+```{r}
+nc_file <- nc_open("../data/input/pm25_components/PM25/V4NA03_PM25_NA_200001_200012-RH35.nc")
+print(nc_file)
+
+```
+```{r}
+pm25 <- ncvar_get(nc_file, "PM25")
+lon <- ncvar_get(nc_file, "LON")
+lat <- ncvar_get(nc_file, "LAT")
+```
+
+```{r}
+# Reshape data
+pm25_df <- melt(pm25)
+pm25_df$lon <- rep(lon, each = length(lat))
+pm25_df$lat <- rep(lat, length(lon))
+pm25_df <- na.omit(pm25_df) # Remove NA values
+# Remove the "Var1" and "Var2" columns from pm25_df
+pm25_df <- pm25_df %>% select(-c(Var1, Var2))
+
+```
+
+```{r}
+# Save pm25_df as Rdata to the specified path
+saveRDS(pm25_df, file = "../data/output/pm25_df.Rdata")
+```
+
+
+```{r}
+# Sample 100 rows from the data frame
+pm25_sample <- pm25_df %>% sample_n(10000)
+
+# Create plot for pm25 sample
+ggplot(pm25_sample, aes(x = lon, y = lat, color = value)) +
+  geom_point() +
+  scale_size_continuous(range = c(1, 10), guide = "none") +
+  scale_color_gradient(low = "blue", high = "red") +
+  xlab("Longitude") +
+  ylab("Latitude") +
+  ggtitle("PM25")
+
+
+```
+
+
