@@ -66,4 +66,35 @@ ggplot(pm25_sample, aes(x = lon, y = lat, color = value)) +
 
 ```
 
+```{r}
+# Sample 100 rows from the data frame
+pm25_sample_1 <- pm25_df %>% sample_n(1000)
+
+# turn it into an sf object, for spatial plotting
+pm25_sf <- pm25_sample_1 %>% 
+  st_as_sf(coords = c('lon', 'lat')) %>%
+  st_set_crs(4326) # using 4326 for lat/lon decimal 
+
+# ggplot2 of the data
+ggplot() +
+  geom_sf(data = pm25_sf, aes(color = value), size = 1)
+
+```
+
+
+
+```{r}
+# Getting a little fancier with it by adding the state borders
+us_map <- rnaturalearth::ne_states(country = 'United States of America', returnclass = 'sf') %>%
+  filter(!name %in% c("Hawaii", "Alaska"))
+
+```
+
+
+```{r}
+ggplot() + 
+  geom_sf(data = pm25_sf, aes(color = value), size = 0.5) + 
+  geom_sf(data = us_map, fill = NA)
+```
+
 
