@@ -108,3 +108,21 @@ grid_sf %>%
           color = "red", 
           size = 0.5)
 ```
+
+
+```{r}
+
+grid_sf %>% 
+  ggplot() + 
+  geom_sf(fill = "blue", lwd = 0.00) + 
+  geom_sf(data = sample_n(pm25_sf, 10000), 
+          color = "red", 
+          size = 0.5)
+grid_sf %>% 
+  ggplot() +
+  geom_sf(fill = "pink", lwd = 0.00) + 
+  geom_sf(data = sample_pm25, aes(color = pm25), size = 0.5) +
+  scale_color_distiller(palette = "Spectral")
+```
+
+
