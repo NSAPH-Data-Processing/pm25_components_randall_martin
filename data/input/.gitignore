@@ -1,0 +1,8 @@
+# ignore everything (dirs, files, sub-dirs, sub-files)
+/*
+# but do not ignore the .gitignore file
+!.gitignore
+# but do not ignore the README.md file
+!README.md
+# do not ignore x folder
+!/x
