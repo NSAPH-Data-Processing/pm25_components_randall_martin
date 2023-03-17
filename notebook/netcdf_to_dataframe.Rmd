@@ -7,63 +7,122 @@ This notebook process raw Netcdf codes from Randall Martin's surface PM2.5 expos
 
 ```{r}
 library(ncdf4)
-library(raster)
+#library(raster)
 library(tidyverse)
-library(geometry)
-library(data.table)
-library(maps)
+#library(geometry)
+#library(data.table)
+#library(maps)
 library(magrittr)
 library(ggplot2)
 library(sf)
 library(reshape2) # For reshaping data
-library(mapdata)  # For map data
-library(ggmap)
+#library(mapdata)  # For map data
+#library(ggmap)
+```
 
+```{r}
+grid_sf <- read_sf("../data/input/10km_grid_wgs84/10km_grid_wgs84.shp")
+
+st_crs(grid_sf)
+
+grid_sf %>% 
+  ggplot() + 
+  geom_sf(fill = "blue", lwd = 0.00)
 ```
 
 
 ```{r}
 nc_file <- nc_open("../data/input/pm25_components/PM25/V4NA03_PM25_NA_200001_200012-RH35.nc")
 print(nc_file)
-
 ```
+
+```{r}
+attributes(nc_file)
+```
+
 ```{r}
 pm25 <- ncvar_get(nc_file, "PM25")
+class(pm25)
+dim(pm25)
+dim(pm25)[1]*dim(pm25)[2]
+sum(!is.na(pm25))
+sum(is.na(pm25))
+```
+
+```{r}
+pm25[1:10, 1:10]
+```
+
+```{r}
 lon <- ncvar_get(nc_file, "LON")
 lat <- ncvar_get(nc_file, "LAT")
+class(lon)
+length(lon)
+class(lat)
+length(lat)
+
+lon[1:10]
+lat[1:10]
 ```
 
 ```{r}
 # Reshape data
 pm25_df <- melt(pm25)
-pm25_df$lon <- rep(lon, each = length(lat))
-pm25_df$lat <- rep(lat, length(lon))
-pm25_df <- na.omit(pm25_df) # Remove NA values
-# Remove the "Var1" and "Var2" columns from pm25_df
-pm25_df <- pm25_df %>% select(-c(Var1, Var2))
-
+pm25_df
 ```
 
 ```{r}
-# Save pm25_df as Rdata to the specified path
-saveRDS(pm25_df, file = "../data/output/pm25_df.Rdata")
+pm25_df$lon <- rep(lon, length(lat))
+pm25_df$lat <- rep(lat, each = length(lon))
+pm25_df
+```
+
+```{r}
+pm25_df <- pm25_df %>% 
+  select(-c(Var1, Var2)) %>% 
+  rename(pm25 = value) %>% 
+  drop_na(pm25)
+
+dim(pm25_df)
+```
+
+```{r}
+pm25_df
+```
+
+```{r}
+pm25_sf <- st_as_sf(pm25_df, coords = c("lon","lat"))
+head(pm25_sf)
+```
+
+```{r}
+st_crs(pm25_sf) <- st_crs(grid_sf)
+head(pm25_sf)
+```
+
+```{r}
+grid_sf %>% 
+  ggplot() + 
+  geom_sf(fill = "blue", lwd = 0.00) + 
+  geom_sf(data = sample_n(pm25_sf, 10000), 
+          color = "red", 
+          size = 0.5)
 ```
 
 
 ```{r}
-# Sample 100 rows from the data frame
-pm25_sample <- pm25_df %>% sample_n(10000)
 
-# Create plot for pm25 sample
-ggplot(pm25_sample, aes(x = lon, y = lat, color = value)) +
-  geom_point() +
-  scale_size_continuous(range = c(1, 10), guide = "none") +
-  scale_color_gradient(low = "blue", high = "red") +
-  xlab("Longitude") +
-  ylab("Latitude") +
-  ggtitle("PM25")
-
-
+grid_sf %>% 
+  ggplot() + 
+  geom_sf(fill = "blue", lwd = 0.00) + 
+  geom_sf(data = sample_n(pm25_sf, 10000), 
+          color = "red", 
+          size = 0.5)
+grid_sf %>% 
+  ggplot() +
+  geom_sf(fill = "pink", lwd = 0.00) + 
+  geom_sf(data = sample_pm25, aes(color = pm25), size = 0.5) +
+  scale_color_distiller(palette = "Spectral")
 ```
 
 
