@@ -18,6 +18,11 @@ library(sf)
 library(reshape2) # For reshaping data
 #library(mapdata)  # For map data
 #library(ggmap)
+library(lubridate)
+library(raster)
+#library(rgeos)
+library(viridis)
+library(tictoc)
 ```
 
 ```{r}
@@ -79,8 +84,8 @@ pm25_df
 
 ```{r}
 pm25_df <- pm25_df %>% 
-  select(-c(Var1, Var2)) %>% 
-  rename(pm25 = value) %>% 
+  dplyr::select(-c(Var1, Var2)) %>% 
+  dplyr::rename(pm25 = value) %>% 
   drop_na(pm25)
 
 dim(pm25_df)
@@ -111,18 +116,84 @@ grid_sf %>%
 
 
 ```{r}
+sample_pm25 <- sample_n(pm25_sf, 10000)
 
-grid_sf %>% 
-  ggplot() + 
-  geom_sf(fill = "blue", lwd = 0.00) + 
-  geom_sf(data = sample_n(pm25_sf, 10000), 
-          color = "red", 
-          size = 0.5)
 grid_sf %>% 
   ggplot() +
   geom_sf(fill = "pink", lwd = 0.00) + 
   geom_sf(data = sample_pm25, aes(color = pm25), size = 0.5) +
   scale_color_distiller(palette = "Spectral")
 ```
+# 1. select points that are in the USA 
+# 2. Over function (faster than interpolate ) from 1 km points —> grid values for 10km grid squares 
+Get 10km grid squares from Randall Martin’s code 
+# 3. Over —> take value to 1x1 km grid —> convert to 10x10 km grid —> use smoke_aggregation workflow 
+```{r}
+grid_sf[1:10000,] %>% 
+  ggplot() +
+  geom_sf(fill = "pink", lwd = 0.00)
+```
+```{r}
+zip_sf = read_sf("../data/input/zipcode/polygon/ESRI06USZIP5_POLY_WGS84.shp")
+st_crs(zip_sf)
+st_crs(grid_sf)
+```
+
+```{r}
+zip_sf %>% 
+  ggplot() + 
+  geom_sf(aes(fill = "red"), alpha = 0.75, lwd = 0.1) + 
+  theme(legend.position = "none")
+```
+```{r}
+ext.ras <- extent(grid_sf)
+ext.pol <- extent(zip_sf)
+
+plot(ext.ras, 
+     xlim = c(min(ext.ras@xmin, ext.pol@xmin), 
+              max(ext.ras@xmax, ext.pol@xmax)), 
+     ylim= c(min(ext.ras@ymin, ext.pol@ymin), 
+              max(ext.ras@ymax, ext.pol@ymax)), 
+     col="red")
+plot(ext.pol, add=T, col="blue")
+```
+```{r}
+# 3245 causes the error 
+zip_sf[3245,]
+sf_use_s2(FALSE)
+zip_sf2 <- st_crop(zip_sf[3250:10000,], st_bbox(grid_sf))
+
+zip_sf2 %>% 
+  ggplot() + 
+  geom_sf(aes(fill = "red"), alpha = 0.75, lwd = 0.1) + 
+  theme(legend.position = "none")
+
+```
+```{r}
+zip_sf2 <- data.frame()
+
+error_indexes <- c()
+
+for (i in 1:5000) {
+  tryCatch({
+    crop_zip_sf <- st_crop(zip_sf[i,], st_bbox(grid_sf))
+    zip_sf2 <- rbind(zip_sf2, crop_zip_sf)
+  }, error = function(e) {
+    error_indexes <- c(error_indexes, i)
+  })
+}
+
+```
+
+```{r}
+# determine which points from sample_pm25 fall within the bounding box of grid_sf
+pm25_within_bbox <- sample_pm25[st_intersects(sample_pm25, st_bbox(grid_sf)), ]
+```
+For grid I, select geometry, from all the points, we identify which points 
+
+Take a grid and crop all the points that fall within the bounding box of a give n single grid cells 
+
+Cut all the points falling into bounding box (extent) —> apply over to give single value for that grid —> assign average value to that grid 
+
 
 
