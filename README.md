@@ -1,5 +1,5 @@
 # netcdf_aggregator
-Process and aggregate netcdf exposures data from Randall Martin's data (https://sites.wustl.edu/acag/datasets/surface-pm2-5/). We use downscale (https://en.wikipedia.org/wiki/Downscaling) rasterization strategy and TIGER/ Lines Shapefiles (https://www.census.gov/geographies/mapping-files/time-series/geo/tiger-line-file.2000.html#list-tab-790442341). 
+Process and aggregate netcdf exposures data from [Randall Martin's data](https://sites.wustl.edu/acag/datasets/surface-pm2-5/). We use [downscale](https://en.wikipedia.org/wiki/Downscaling) rasterization strategy and [TIGER/ Lines Shapefiles](https://www.census.gov/geographies/mapping-files/time-series/geo/tiger-line-file.2000.html#list-tab-790442341). 
 
 
 
