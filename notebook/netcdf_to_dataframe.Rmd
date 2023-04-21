@@ -18,6 +18,11 @@ library(sf)
 library(reshape2) # For reshaping data
 #library(mapdata)  # For map data
 #library(ggmap)
+library(lubridate)
+library(raster)
+#library(rgeos)
+library(viridis)
+library(tictoc)
 ```
 
 ```{r}
@@ -25,7 +30,7 @@ grid_sf <- read_sf("../data/input/10km_grid_wgs84/10km_grid_wgs84.shp")
 
 st_crs(grid_sf)
 
-grid_sf %>% 
+grid_sf[] %>% 
   ggplot() + 
   geom_sf(fill = "blue", lwd = 0.00)
 ```
@@ -79,8 +84,8 @@ pm25_df
 
 ```{r}
 pm25_df <- pm25_df %>% 
-  select(-c(Var1, Var2)) %>% 
-  rename(pm25 = value) %>% 
+  dplyr::select(-c(Var1, Var2)) %>% 
+  dplyr::rename(pm25 = value) %>% 
   drop_na(pm25)
 
 dim(pm25_df)
@@ -111,13 +116,8 @@ grid_sf %>%
 
 
 ```{r}
+sample_pm25 <- sample_n(pm25_sf, 10000)
 
-grid_sf %>% 
-  ggplot() + 
-  geom_sf(fill = "blue", lwd = 0.00) + 
-  geom_sf(data = sample_n(pm25_sf, 10000), 
-          color = "red", 
-          size = 0.5)
 grid_sf %>% 
   ggplot() +
   geom_sf(fill = "pink", lwd = 0.00) + 
@@ -125,4 +125,206 @@ grid_sf %>%
   scale_color_distiller(palette = "Spectral")
 ```
 
+```{r}
+rm(pm25)
+rm(pm25_df)
+gc()
+```
+
+
+```{r}
+#sample_pm25 <-  sample_n(pm25_sf, 1000000)
+```
+
+```{r}
+grid_i_sf <- dplyr::select(grid_sf[1:100, ], c("geometry"))
+#dots_inside <- st_contains(first_zip ,, sparse = TRUE)
+pm25_i_sf <- dplyr::select(st_crop(pm25, extent(grid_i_sf)), c("pm25", "geometry"))
+```
+
+```{r}
+grid_i_sf %>% 
+  ggplot() + 
+  geom_sf() + 
+  geom_sf(data = pm25_i_sf, color = "red")
+```
+
+
+```{r}
+pm25_i_sp = as_Spatial(pm25_i_sf)
+
+for (j in 1:100) {
+  grid_j_sf <- dplyr::select(grid_i_sf[j, ], c("geometry"))
+
+  if(class(grid_j_sf)[1] != "try-error"){
+    grid_j_sp = as_Spatial(grid_j_sf)
+
+    pm25 <- as.numeric(grid_j_sp %over% pm25_i_sp)
+  } else pm25 <- as.numeric(NA)
+  
+  print(pm25)
+}
+
+```
+
+
+
+# 1. select points that are in the USA 
+# 2. Over function (faster than interpolate ) from 1 km points —> grid values for 10km grid squares 
+Get 10km grid squares from Randall Martin’s code 
+# 3. Over —> take value to 1x1 km grid —> convert to 10x10 km grid —> use smoke_aggregation workflow 
+```{r}
+grid_sf[1:100,] %>% 
+  ggplot() +
+  geom_sf()
+```
+```{r}
+zip_sf = read_sf("../data/input/zipcode/polygon/ESRI06USZIP5_POLY_WGS84.shp")
+st_crs(zip_sf)
+st_crs(grid_sf)
+```
+
+```{r}
+first_zip <- zip_sf[5000:6000,]
+dots_inside <- st_contains(first_zip ,sample_pm25, sparse = TRUE)
+inside_dots <- which(dots_inside)
+inside_dots
+
+first_zip%>% 
+  ggplot() + 
+  geom_sf(aes(fill = "red"), alpha = 0.75, lwd = 0.1) + 
+  theme(legend.position = "none")
+```
+```{r}
+
+insides <- sample_pm25[dots_inside,]
+# Plot the points inside the first zip code area
+ggplot() + 
+  geom_sf(data = first_zip, fill = "transparent", color = "red", size = 1) +
+  geom_sf(data = dots_inside, color = "blue", size = 1) +
+  coord_sf() +
+  labs(title = "Points Inside First Zip Code Area")
+```
+
+
+
+```{r}
+zip_sf %>% 
+  ggplot() + 
+  geom_sf(aes(fill = "red"), alpha = 0.75, lwd = 0.1) + 
+  theme(legend.position = "none")
+```
+```{r}
+ext.ras <- extent(grid_sf)
+ext.pol <- extent(zip_sf)
+
+plot(ext.ras, 
+     xlim = c(min(ext.ras@xmin, ext.pol@xmin), 
+              max(ext.ras@xmax, ext.pol@xmax)), 
+     ylim= c(min(ext.ras@ymin, ext.pol@ymin), 
+              max(ext.ras@ymax, ext.pol@ymax)), 
+     col="red")
+plot(ext.pol, add=T, col="blue")
+```
+```{r}
+# 3245 causes the error 
+zip_sf[3245,]
+sf_use_s2(FALSE)
+zip_sf2 <- st_crop(zip_sf[3250:10000,], st_bbox(grid_sf))
+
+zip_sf2 %>% 
+  ggplot() + 
+  geom_sf(aes(fill = "red"), alpha = 0.75, lwd = 0.1) + 
+  theme(legend.position = "none")
+
+```
+```{r}
+zip_sf2 <- data.frame()
+
+error_indexes <- c()
+
+for (i in 1:5000) {
+  tryCatch({
+    crop_zip_sf <- st_crop(zip_sf[i,], st_bbox(grid_sf))
+    zip_sf2 <- rbind(zip_sf2, crop_zip_sf)
+  }, error = function(e) {
+    error_indexes <- c(error_indexes, i)
+  })
+}
+
+```
+
+```{r}
+# determine which points from sample_pm25 fall within the bounding box of grid_sf
+pm25_within_bbox <- sample_pm25[st_intersects(sample_pm25, st_bbox(grid_sf)), ]
+```
+
+
+For grid I, select geometry, from all the points, we identify which points 
+
+Take a grid and crop all the points that fall within the bounding box of a give n single grid cells 
+
+Cut all the points falling into bounding box (extent) —> apply over to give single value for that grid —> assign average value to that grid 
+
+```{r}
+head(sample_pm25)
+# Define the grid cell size in meters (10 km x 10 km)
+cell_size <- 10000
+
+# Group the points into grid cells and calculate the mean value of pm25 for each cell
+sample_pm25_grid <- sample_pm25 %>%
+  st_transform(crs = st_crs("+proj=utm +zone=10 +datum=WGS84")) %>% # convert to UTM for distance calculation
+  st_make_grid(cell_size = cell_size) %>%
+  st_intersection(sample_pm25) %>%
+  group_by(id) %>%
+  summarise(pm25_mean = mean(pm25, na.rm = TRUE))
+
+# Print the resulting data frame
+print(sample_pm25_grid)
+```
+```{r}
+library(sf)
+
+# Convert sample_pm25 to an sf object
+sample_pm25_sf <- st_as_sf(sample_pm25, coords = c("lon", "lat"), crs = 4326)
+
+# Group points into a 10x10 km grid
+grid_size <- 10 # meters
+sample_pm25_grid <- st_make_grid(sample_pm25_sf, cellsize = c(grid_size, grid_size))
+
+# Assign points to grid cells
+sample_pm25_grid$pm25 <- st_extract(sample_pm25_sf["pm25"], sample_pm25_grid)
+
+# Calculate the mean pm25 value for each grid cell
+sample_pm25_grid_mean <- aggregate(sample_pm25_grid["pm25"], sample_pm25_grid, mean)
+
+# Print the resulting data frame
+print(sample_pm25_grid_mean)
+
+```
+
+```{r}
+sfc = st_sfc(st_polygon(list(rbind(c(0,0), c(1,0), c(1,1), c(0,0)))))
+plot(sample_pm25_sf)
+plot(sample_pm25_grid)
+```
+```{r}
+
+# Group points into a 10x10 km grid
+grid_size <- 100 # meters 
+
+polygony <- st_make_grid(sample_pm25_sf, square = T, cellsize = c(grid_size, grid_size)) %>% # the grid, covering bounding box
+  st_sf() # not really required, but makes the grid nicer to work with later
+
+plot(polygony, col = 'white')
+plot(st_geometry(sample_pm25_sf), add = T)
+
+```
+
+```{r}
+grid_sf = read_sf("../data/input/remote_data/10km_grid_wgs84/10km_grid_wgs84.shp")
+
+
+
+```
 
