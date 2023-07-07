@@ -1,0 +1,5 @@
+```
+
+python netcdf_tools.py --input /net/rcstorenfs02/ifs/rc_labs/dominici_lab/lab/data/pm25_components/PM25/V4NA03_PM25_NA_200001_200012-RH35.nc --components /net/rcstorenfs02/ifs/rc_labs/dominici_lab/lab/data/pm25_components/BCp/GWRwSPEC_BCp_NA_200001_200012-wrtSPECtotal.nc /net/rcstorenfs02/ifs/rc_labs/dominici_lab/lab/data/pm25_components/NH4p/GWRwSPEC_NH4p_NA_200001_200012-wrtSPECtotal.nc /net/rcstorenfs02/ifs/rc_labs/dominici_lab/lab/data/pm25_components/NITp/GWRwSPEC_NITp_NA_200001_200012-wrtSPECtotal.nc /net/rcstorenfs02/ifs/rc_labs/dominici_lab/lab/data/pm25_components/OMp/GWRwSPEC_OMp_NA_200001_200012-wrtSPECtotal.nc /net/rcstorenfs02/ifs/rc_labs/dominici_lab/lab/data/pm25_components/SO4p/GWRwSPEC_SO4p_NA_200001_200012-wrtSPECtotal.nc /net/rcstorenfs02/ifs/rc_labs/dominici_lab/lab/data/pm25_components/SOILp/GWRwSPEC_SOILp_NA_200001_200012-wrtSPECtotal.nc /net/rcstorenfs02/ifs/rc_labs/dominici_lab/lab/data/pm25_components/SSp/GWRwSPEC_SSp_NA_200001_200012-wrtSPECtotal.nc --output ../data/output/component_merged/year2000.nc
+
+```
