@@ -1,10 +1,10 @@
-# PM 2.5 Components - Randall Martin Data 
-Process and aggregate netcdf exposures data from [Randall Martin's data](https://sites.wustl.edu/acag/datasets/surface-pm2-5/). We use [downscale](https://en.wikipedia.org/wiki/Downscaling) rasterization strategy and [TIGER/ Lines Shapefiles](https://www.census.gov/geographies/mapping-files/time-series/geo/tiger-line-file.2000.html#list-tab-790442341). 
+# PM 2.5 Components - Randall Martin Data
 
+This repository focuses on processing and aggregating netCDF exposure data from [Randall Martin's data](https://sites.wustl.edu/acag/datasets/surface-pm2-5/). The processing involves applying a [downscaling](https://en.wikipedia.org/wiki/Downscaling) rasterization strategy using [TIGER/Line Shapefiles](https://www.census.gov/geographies/mapping-files/time-series/geo/tiger-line-file.2000.html#list-tab-790442341).
 
+## Pipeline and Code
 
-The pipeline to do the rasterization and aggregation can be found here:
- https://github.com/NSAPH-Data-Platform/nsaph-gis/blob/develop/nsaph_gis/
+The entire pipeline for rasterization and aggregation can be found in the [nsaph-gis repository](https://github.com/NSAPH-Data-Platform/nsaph-gis/tree/develop/nsaph_gis/). This includes the process of converting the netCDF data to raster format and further aggregation based on geospatial features.
 
 
 Example result: 
@@ -18,9 +18,10 @@ Example result:
 |    8.10734 | 0.466201 | 0.958111 | 1.73319 | 2.34420 | 2.01851 | 0.466201 | 0.123487  | 52573 | 2000 |
 |    8.46975 | 0.477376 | 1.030934 | 1.81464 | 2.44444 | 2.07887 | 0.477376 | 0.150484  | 52542 | 2000 |
 
-You can copy and paste this table into your README file.
 
-### The notebook file contains the basic exploration for Netcdf data and EDA for rasterization result. 
+## Exploratory Data Analysis (EDA)
+
+The accompanying notebook contains basic exploratory data analysis for the netCDF data and visualization of the rasterization results. 
 
 Here is the example of coverage map for year 2018: 
 
@@ -28,10 +29,12 @@ Here is the example of coverage map for year 2018:
 
 ## <a name="_3pvqmuyiayzd"></a>Steps to reproduce running Gridmet pipeline in CANNON for  PM25 components aggregation:
 Summarized from: <https://3.basecamp.com/3348350/buckets/29048408/messages/6023800231#__recording_6067667051> 
-### <a name="_tv0cojf0x4ko"></a>Data Location: 
-- Location of smoke pm25 components data: <https://vdi.rc.fas.harvard.edu/pun/sys/dashboard/files/fs//net/rcstorenfs02/ifs/rc_labs/dominici_lab/lab/data/pm25_components>  
-- Location of shapefiles data: <https://vdi.rc.fas.harvard.edu/pun/sys/dashboard/files/fs//net/rcstorenfs02/ifs/rc_labs/dominici_lab/lab/data/zipcode/polygon>  
-- Location of pipelines: <https://vdi.rc.fas.harvard.edu/pun/sys/dashboard/files/fs//net/rcstorenfs02/ifs/rc_labs/dominici_lab/lab/data_processing> 
+
+### Data Location
+
+- Smoke PM25 components data: [Link](https://vdi.rc.fas.harvard.edu/pun/sys/dashboard/files/fs//net/rcstorenfs02/ifs/rc_labs/dominici_lab/lab/data/pm25_components)
+- Shapefiles data: [Link](https://vdi.rc.fas.harvard.edu/pun/sys/dashboard/files/fs//net/rcstorenfs02/ifs/rc_labs/dominici_lab/lab/data/zipcode/polygon)
+- Pipelines: [Link](https://vdi.rc.fas.harvard.edu/pun/sys/dashboard/files/fs//net/rcstorenfs02/ifs/rc_labs/dominici_lab/lab/data_processing)
 
 ### <a name="_fzpsk6d543ow"></a>Connecting to CANNON VPN: 
 - Follow these steps: <https://nsaph.info/cannon.html>  
