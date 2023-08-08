@@ -7,7 +7,23 @@ This repository focuses on processing and aggregating netCDF exposure data from 
 The entire pipeline for rasterization and aggregation can be found in the [nsaph-gis repository](https://github.com/NSAPH-Data-Platform/nsaph-gis/tree/develop/nsaph_gis/). This includes the process of converting the netCDF data to raster format and further aggregation based on geospatial features.
 
 
-Example result: 
+## PM2.5 Components Annual Data per ZCTA
+
+This dataset provides comprehensive insights into the annual distribution of PM2.5 (Particulate Matter with a diameter of 2.5 micrometers or smaller) components across different Zip Code Tabulation Areas (ZCTAs). PM2.5 is a critical air pollutant with potential health and environmental impacts. This data highlights the individual components that contribute to PM2.5 levels, offering valuable information for air quality research and policymaking.
+
+The dataset covers various PM2.5 components, including:
+
+- **BC (Black Carbon):** A fine particulate matter produced by incomplete combustion of carbon-based fuels.
+- **NH4 (Ammonium):** A compound formed from ammonia gas, commonly found in airborne particles.
+- **NIT (Nitrate):** Nitric acid and nitrate salts, which are major constituents of PM2.5 particles.
+- **OM (Organic Matter):** Carbon-containing compounds from organic sources, contributing to particle mass.
+- **SO4 (Sulfate):** Sulfuric acid and sulfate salts, originating from industrial and natural sources.
+- **SOIL (Soil Dust):** Particles from soil erosion and mineral dust suspended in the air.
+- **SS (Sea Salt):** Particles generated from ocean spray, containing various minerals.
+
+The data is organized by year and ZCTA, providing annual averages for each PM2.5 component. This dataset aids in understanding the composition and variations of PM2.5 across different geographical areas. It plays a crucial role in studying pollution sources, assessing health risks, and formulating air quality regulations.
+
+Data result: 
 
 |      PM25  |       BC |       NH4 |      NIT |       OM |      SO4 |     SOIL |        SS |  zcta | Year |
 |-----------:|---------:|---------:|--------:|--------:|--------:|--------:|---------:|------:|-----:|
